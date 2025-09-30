@@ -1,0 +1,18 @@
+// source: modules/auth/prisma/schema.prisma
+model AuthUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// source: modules/billing-stripe/prisma/schema.prisma
+model BillingSubscription {
+  id             String   @id @default(cuid())
+  customerId     String
+  status         String
+  priceId        String
+  currentPeriodEnd DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

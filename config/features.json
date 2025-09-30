@@ -1,0 +1,17 @@
+{
+  "modules": {
+    "auth": {
+      "enabled": true,
+      "displayName": "Authentication",
+      "description": "User onboarding, sign-in, and session management powered by NextAuth.js stubs."
+    },
+    "billing-stripe": {
+      "enabled": true,
+      "displayName": "Stripe Billing",
+      "description": "Stripe powered billing settings, subscription management, and webhook scaffolding."
+    }
+  },
+  "billing": {
+    "provider": "stripe"
+  }
+}
