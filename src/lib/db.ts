@@ -1,14 +1,34 @@
 import { PrismaClient } from "@prisma/client";
 
-declare global {
-  // eslint-disable-next-line no-var, vars-on-top
-  var prismaGlobal: PrismaClient | undefined;
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL environment variable is not set.");
 }
 
-export const prisma = globalThis.prismaGlobal ?? new PrismaClient();
+type PrismaGlobal = { prismaGlobal?: PrismaClient };
+const globalForPrisma = globalThis as unknown as PrismaGlobal;
+
+export const prisma =
+  globalForPrisma.prismaGlobal ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+  });
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.prismaGlobal = prisma;
+  globalForPrisma.prismaGlobal = prisma;
+}
+
+export const connectToDatabase = async () => {
+  await prisma.$connect();
+  return prisma;
+};
+
+if (process.env.NODE_ENV !== "test") {
+  void connectToDatabase().catch((error) => {
+    console.error("Failed to establish a database connection.", error);
+    throw error;
+  });
 }
 
 export type DbClient = typeof prisma;
