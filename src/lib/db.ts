@@ -24,7 +24,9 @@ export const connectToDatabase = async () => {
   return prisma;
 };
 
-if (process.env.NODE_ENV !== "test") {
+const shouldAutoConnect = process.env.NODE_ENV === "development";
+
+if (shouldAutoConnect) {
   void connectToDatabase().catch((error) => {
     console.error("Failed to establish a database connection.", error);
     throw error;

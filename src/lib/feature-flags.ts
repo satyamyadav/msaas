@@ -1,10 +1,22 @@
 import features from "@config/features.json";
 
-const FEATURE_CONFIG = features as const;
+export type FeatureConfig = {
+  modules: Record<
+    string,
+    {
+      enabled: boolean;
+      displayName: string;
+      description: string;
+    }
+  >;
+  billing: {
+    provider: string;
+  };
+};
+
+const FEATURE_CONFIG: FeatureConfig = features;
 
 export { FEATURE_CONFIG };
-
-export type FeatureConfig = typeof FEATURE_CONFIG;
 export type ModuleKey = keyof FeatureConfig["modules"];
 
 export function isFeatureEnabled(module: ModuleKey): boolean {

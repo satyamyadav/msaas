@@ -30,10 +30,22 @@ model WorkspaceMember {
 
 // source: modules/auth/prisma/schema.prisma
 model AuthUser {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  sessions     AuthSession[]
+}
+
+model AuthSession {
+  id           String   @id @default(cuid())
+  token        String   @unique
+  user         AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  createdAt    DateTime @default(now())
+  lastActiveAt DateTime @default(now())
+  expiresAt    DateTime
 }
 
 // source: modules/billing-stripe/prisma/schema.prisma

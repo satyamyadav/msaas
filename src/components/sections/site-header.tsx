@@ -1,12 +1,16 @@
 import Link from "next/link";
 
+import { getCurrentUser, signOutAction } from "@modules/auth/actions";
+
 const navigation = [
   { href: "/", label: "Overview" },
   { href: "/sign-in", label: "Auth" },
   { href: "/billing", label: "Billing" },
 ];
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const sessionUser = await getCurrentUser();
+
   return (
     <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
@@ -24,6 +28,23 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          {sessionUser ? (
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="rounded-lg px-3 py-2 font-medium text-foreground transition hover:bg-muted"
+              >
+                Sign out
+              </button>
+            </form>
+          ) : (
+            <Link
+              href="/sign-in?redirectTo=%2Fbilling"
+              className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground transition hover:bg-primary/90"
+            >
+              Sign in
+            </Link>
+          )}
         </nav>
       </div>
     </header>

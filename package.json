@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:merge": "node scripts/merge-prisma.mjs",
-    "postinstall": "npm run db:merge && prisma generate"
+    "postinstall": "npm run db:merge && prisma generate --schema prisma/merged.prisma"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
