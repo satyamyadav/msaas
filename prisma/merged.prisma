@@ -1,0 +1,48 @@
+// THIS FILE IS AUTO-GENERATED. DO NOT EDIT DIRECTLY.
+// Run `npm run db:merge` to re-create it.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  members     WorkspaceMember[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  role        String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+  userId      String
+  createdAt   DateTime  @default(now())
+}
+
+// source: modules/auth/prisma/schema.prisma
+model AuthUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// source: modules/billing-stripe/prisma/schema.prisma
+model BillingSubscription {
+  id             String   @id @default(cuid())
+  customerId     String
+  status         String
+  priceId        String
+  currentPeriodEnd DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
