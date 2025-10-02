@@ -4,6 +4,7 @@ import { getCurrentUser, signOutAction } from "@modules/auth/actions";
 
 const navigation = [
   { href: "/", label: "Overview" },
+  { href: "/themes", label: "Themes" },
   { href: "/sign-in", label: "Auth" },
   { href: "/billing", label: "Billing" },
 ];
