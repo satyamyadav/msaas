@@ -1,5 +1,46 @@
 generator client {
   provider = "prisma-client-js"
+
+}
+
+model BillingSubscription {
+  id                String        @id @default(cuid())
+  organization      Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId    String        @unique
+  customerId        String
+  status            String
+  priceId           String
+  planTier          PlanTier      @default(PRO)
+  currentPeriodEnd  DateTime
+  cancelAtPeriodEnd Boolean       @default(false)
+  trialEndsAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model AuthUser {
+  id              String                 @id @default(cuid())
+  email           String                 @unique
+  passwordHash    String
+  displayName     String?
+  emailVerifiedAt DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  sessions        AuthSession[]
+  memberships     OrganizationMember[]
+  invitesSent     OrganizationInvite[]   @relation("InviteInvitedBy")
+  invitesAccepted OrganizationInvite[]   @relation("InviteAcceptedBy")
+  auditLogs       AuditLog[]             @relation("AuditLogActor")
+}
+
+model AuthSession {
+  id           String   @id @default(cuid())
+  token        String   @unique
+  user         AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  createdAt    DateTime @default(now())
+  lastActiveAt DateTime @default(now())
+  expiresAt    DateTime
 }
 
 datasource db {
@@ -7,20 +48,236 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Workspace {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  members     WorkspaceMember[]
+enum PlanTier {
+  FREE
+  PRO
 }
 
-model WorkspaceMember {
-  id          String    @id @default(cuid())
-  role        String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-  workspaceId String
-  userId      String
-  createdAt   DateTime  @default(now())
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum MemberStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum LinkStatus {
+  ACTIVE
+  PAUSED
+  EXPIRED
+  ARCHIVED
+}
+
+enum DomainStatus {
+  PENDING
+  VERIFYING
+  VERIFIED
+  FAILED
+}
+
+model Organization {
+  id                       String                  @id @default(cuid())
+  name                     String
+  slug                     String                  @unique
+  planTier                 PlanTier                @default(FREE)
+  logoUrl                  String?
+  primaryDomain            String?
+  analyticsRetentionMonths Int                     @default(18)
+  isOnboardingComplete     Boolean                 @default(false)
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+  deletedAt                DateTime?
+
+  members      OrganizationMember[]
+  invites      OrganizationInvite[]
+  links        Link[]
+  tags         LinkTag[]
+  domains      CustomDomain[]
+  apiKeys      ApiKey[]
+  auditLogs    AuditLog[]
+  quickstart   QuickStartChecklist?
+  subscriptions BillingSubscription[]
+}
+
+model OrganizationMember {
+  id             String        @id @default(cuid())
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  user           AuthUser      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  role           MemberRole    @default(MEMBER)
+  status         MemberStatus  @default(ACTIVE)
+  joinedAt       DateTime       @default(now())
+  lastSeenAt     DateTime?
+  invitedByInvite OrganizationInvite? @relation("MemberCreatedFromInvite", fields: [invitedByInviteId], references: [id])
+  invitedByInviteId String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  createdLinks   Link[]         @relation("LinkCreatedBy")
+  apiKeys        ApiKey[]
+
+  @@unique([organizationId, userId])
+}
+
+model OrganizationInvite {
+  id             String        @id @default(cuid())
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  email          String
+  role           MemberRole    @default(MEMBER)
+  status         InviteStatus  @default(PENDING)
+  token          String        @unique
+  expiresAt      DateTime
+  invitedBy      AuthUser?     @relation("InviteInvitedBy", fields: [invitedById], references: [id])
+  invitedById    String?
+  acceptedBy     AuthUser?     @relation("InviteAcceptedBy", fields: [acceptedById], references: [id])
+  acceptedById   String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  createdMember OrganizationMember[] @relation("MemberCreatedFromInvite")
+}
+
+model QuickStartChecklist {
+  id                   String       @id @default(cuid())
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId      String       @unique
+  createdFirstLinkAt  DateTime?
+  invitedTeamAt       DateTime?
+  configuredDomainAt  DateTime?
+  viewedAnalyticsAt   DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+model Link {
+  id             String           @id @default(cuid())
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  createdBy      OrganizationMember @relation("LinkCreatedBy", fields: [createdById], references: [id])
+  createdById    String
+  domain         CustomDomain?    @relation(fields: [domainId], references: [id])
+  domainId       String?
+  slug           String
+  destinationUrl String
+  title          String?
+  description    String?
+  status         LinkStatus       @default(ACTIVE)
+  expiresAt      DateTime?
+  lastClickedAt  DateTime?
+  clickCount     Int              @default(0)
+  uniqueVisitors Int              @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  tags   LinkTagAssignment[]
+  clicks ClickEvent[]
+
+  @@unique([organizationId, slug, domainId])
+}
+
+model LinkTag {
+  id             String       @id @default(cuid())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  name           String
+  description    String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  links LinkTagAssignment[]
+
+  @@unique([organizationId, name])
+}
+
+model LinkTagAssignment {
+  id        String   @id @default(cuid())
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  linkId    String
+  tag       LinkTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId     String
+  createdAt DateTime @default(now())
+
+  @@unique([linkId, tagId])
+}
+
+model ClickEvent {
+  id           String   @id @default(cuid())
+  link         Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  linkId       String
+  occurredAt   DateTime @default(now())
+  referrer     String?
+  country      String?
+  region       String?
+  city         String?
+  deviceType   String?
+  browser      String?
+  os           String?
+  userAgent    String?
+  ipHash       String?
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  utmTerm      String?
+  utmContent   String?
+
+  @@index([linkId, occurredAt])
+  @@index([ipHash])
+  @@index([country])
+}
+
+model CustomDomain {
+  id             String       @id @default(cuid())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  domain         String       @unique
+  status         DomainStatus @default(PENDING)
+  verificationToken String    @unique
+  verifiedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  links Link[]
+}
+
+model ApiKey {
+  id             String              @id @default(cuid())
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  name           String
+  prefix         String              @unique
+  keyHash        String
+  createdBy      OrganizationMember? @relation(fields: [createdById], references: [id])
+  createdById    String?
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime            @default(now())
+
+  @@index([organizationId])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  actor          AuthUser?    @relation("AuditLogActor", fields: [actorId], references: [id])
+  actorId        String?
+  action         String
+  description    String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
 }

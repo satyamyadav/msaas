@@ -3,16 +3,21 @@ import Link from "next/link";
 import { ThemeToggle } from "@components/theme-toggle";
 import { Button, buttonVariants } from "@components/ui/button";
 import { cn } from "@lib/utils";
+import { getOrganizationsForUser } from "@lib/server/organizations";
 import { getCurrentUser, signOutAction } from "@modules/auth/actions";
-
-const navigation = [
-  { href: "/", label: "Overview" },
-  { href: "/sign-in", label: "Auth" },
-  { href: "/billing", label: "Billing" },
-];
 
 export async function SiteHeader() {
   const sessionUser = await getCurrentUser();
+  const organizations = sessionUser ? await getOrganizationsForUser(sessionUser.id) : [];
+  const defaultOrgSlug = organizations[0]?.organization.slug;
+
+  const navigation = [
+    { href: "/", label: "Overview" },
+    { href: "/docs/getting-started", label: "Docs" },
+    sessionUser
+      ? { href: defaultOrgSlug ? `/app/${defaultOrgSlug}` : "/app", label: "Dashboard" }
+      : { href: "/pricing", label: "Pricing" },
+  ];
 
   return (
     <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur">

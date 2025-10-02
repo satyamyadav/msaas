@@ -1,10 +1,17 @@
 model AuthUser {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  passwordHash String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  sessions     AuthSession[]
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String
+  displayName    String?
+  emailVerifiedAt DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  sessions       AuthSession[]
+  invitesSent    Invite[] @relation("InviteInvitedBy")
+  invitesAccepted Invite[] @relation("InviteAcceptedBy")
+  auditLogs      AuditLog[] @relation("AuditLogActor")
 }
 
 model AuthSession {

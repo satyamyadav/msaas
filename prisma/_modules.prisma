@@ -1,11 +1,33 @@
+// source: modules/billing-stripe/prisma/schema.prisma
+model BillingSubscription {
+  id                String        @id @default(cuid())
+  organization      Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId    String        @unique
+  customerId        String
+  status            String
+  priceId           String
+  planTier          PlanTier      @default(PRO)
+  currentPeriodEnd  DateTime
+  cancelAtPeriodEnd Boolean       @default(false)
+  trialEndsAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
 // source: modules/auth/prisma/schema.prisma
 model AuthUser {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  passwordHash String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  sessions     AuthSession[]
+  id              String                 @id @default(cuid())
+  email           String                 @unique
+  passwordHash    String
+  displayName     String?
+  emailVerifiedAt DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  sessions        AuthSession[]
+  memberships     OrganizationMember[]
+  invitesSent     OrganizationInvite[]   @relation("InviteInvitedBy")
+  invitesAccepted OrganizationInvite[]   @relation("InviteAcceptedBy")
+  auditLogs       AuditLog[]             @relation("AuditLogActor")
 }
 
 model AuthSession {
@@ -16,15 +38,4 @@ model AuthSession {
   createdAt    DateTime @default(now())
   lastActiveAt DateTime @default(now())
   expiresAt    DateTime
-}
-
-// source: modules/billing-stripe/prisma/schema.prisma
-model BillingSubscription {
-  id             String   @id @default(cuid())
-  customerId     String
-  status         String
-  priceId        String
-  currentPeriodEnd DateTime
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 }

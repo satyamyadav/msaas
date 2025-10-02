@@ -25,6 +25,8 @@ import { authFormInitialState } from "@modules/auth/state";
 type SignInFormProps = {
   mode: "login" | "register";
   redirectTo: string;
+  inviteToken?: string;
+  email?: string;
 };
 
 function SubmitButton({ label }: { label: string }) {
@@ -36,31 +38,53 @@ function SubmitButton({ label }: { label: string }) {
   );
 }
 
-export function SignInForm({ mode, redirectTo }: SignInFormProps) {
+export function SignInForm({ mode, redirectTo, inviteToken, email }: SignInFormProps) {
   const action = mode === "register" ? signUpAction : signInAction;
   const [state, formAction] = useFormState<AuthFormState, FormData>(action, authFormInitialState);
 
   const isRegister = mode === "register";
-  const toggleHref = isRegister
-    ? `/sign-in?redirectTo=${encodeURIComponent(redirectTo)}`
-    : `/sign-in?mode=register&redirectTo=${encodeURIComponent(redirectTo)}`;
+  const params = new URLSearchParams({ redirectTo });
+  if (inviteToken) {
+    params.set("invite", inviteToken);
+  }
+  if (email) {
+    params.set("email", email);
+  }
+  const query = params.toString();
+
+  const toggleHref = isRegister ? `/sign-in?${query}` : `/sign-in?mode=register&${query}`;
+  const inviteActive = Boolean(inviteToken);
 
   return (
     <Card className="mx-auto w-full max-w-md">
       <CardHeader className="space-y-2">
-        <CardTitle>{isRegister ? "Create your workspace" : "Sign in to your workspace"}</CardTitle>
+        <CardTitle>
+          {isRegister ? (inviteActive ? "Claim your invitation" : "Create your workspace") : "Sign in to your workspace"}
+        </CardTitle>
         <CardDescription>
           {isRegister
-            ? "Set up your account with a password to access the modular SaaS dashboard."
+            ? inviteActive
+              ? "Finish setting up your account to join the team that invited you."
+              : "Set up your account with a password to access the modular SaaS dashboard."
             : "Enter your credentials to continue where you left off."}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form action={formAction} className="flex flex-col gap-4">
           <input type="hidden" name="redirectTo" value={redirectTo} />
+          {inviteToken ? <input type="hidden" name="inviteToken" value={inviteToken} /> : null}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" name="email" placeholder="you@example.com" required autoComplete="email" />
+            <Input
+              id="email"
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              required
+              autoComplete="email"
+              defaultValue={email}
+              readOnly={Boolean(email && inviteActive)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -87,6 +111,37 @@ export function SignInForm({ mode, redirectTo }: SignInFormProps) {
                 minLength={8}
               />
             </div>
+          ) : null}
+          {isRegister ? (
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full name</Label>
+              <Input
+                id="fullName"
+                name="fullName"
+                placeholder="Ada Lovelace"
+                autoComplete="name"
+              />
+            </div>
+          ) : null}
+          {isRegister && !inviteActive ? (
+            <div className="space-y-2">
+              <Label htmlFor="organizationName">Organization name</Label>
+              <Input
+                id="organizationName"
+                name="organizationName"
+                placeholder="Acme Analytics"
+                required
+              />
+            </div>
+          ) : null}
+          {inviteActive ? (
+            <Alert>
+              <AlertTitle>You're invited</AlertTitle>
+              <AlertDescription>
+                Complete your account to join the workspace. If you already have an account with this email, simply switch to
+                sign in.
+              </AlertDescription>
+            </Alert>
           ) : null}
           {state.status === "error" ? (
             <Alert variant="destructive">

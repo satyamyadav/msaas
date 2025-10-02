@@ -11,6 +11,7 @@ const SESSION_TOUCH_THRESHOLD_MS = 1000 * 60 * 15; // 15 minutes
 export type SessionUser = {
   id: string;
   email: string;
+  displayName: string | null;
 };
 
 function normalizeEmail(email: string) {
@@ -57,7 +58,7 @@ async function touchSession(id: string) {
   });
 }
 
-export async function registerUser(email: string, password: string) {
+export async function registerUser(email: string, password: string, displayName?: string | null) {
   const normalizedEmail = normalizeEmail(email);
   const passwordHash = hashPassword(password);
 
@@ -73,6 +74,7 @@ export async function registerUser(email: string, password: string) {
     data: {
       email: normalizedEmail,
       passwordHash,
+      displayName: displayName ?? undefined,
     },
   });
 }
@@ -157,5 +159,6 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   return {
     id: session.user.id,
     email: session.user.email,
+    displayName: session.user.displayName,
   };
 });

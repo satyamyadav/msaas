@@ -1,9 +1,9 @@
 model BillingSubscription {
   id             String   @id @default(cuid())
-  customerId     String
+  userId         String
+  user           AuthUser @relation(fields: [userId], references: [id])
+  plan           String
   status         String
-  priceId        String
-  currentPeriodEnd DateTime
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

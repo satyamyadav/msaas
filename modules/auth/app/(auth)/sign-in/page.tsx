@@ -28,11 +28,11 @@ async function resolveSearchParams(searchParams?: Promise<SearchParams>) {
 function resolveRedirect(searchParams: SearchParams | undefined) {
   const value = typeof searchParams?.redirectTo === "string" ? searchParams.redirectTo : undefined;
   if (!value) {
-    return "/billing";
+    return "/app";
   }
 
   if (!value.startsWith("/") || value.startsWith("//")) {
-    return "/billing";
+    return "/app";
   }
 
   return value;
@@ -43,6 +43,16 @@ function resolveMode(searchParams: SearchParams | undefined) {
   return value === "register" ? "register" : "login";
 }
 
+function resolveInvite(searchParams: SearchParams | undefined) {
+  const value = typeof searchParams?.invite === "string" ? searchParams.invite : undefined;
+  return value ?? undefined;
+}
+
+function resolveEmail(searchParams: SearchParams | undefined) {
+  const value = typeof searchParams?.email === "string" ? searchParams.email : undefined;
+  return value ?? undefined;
+}
+
 export default async function AuthSignInPage({ searchParams }: AuthSignInPageProps) {
   if (!isFeatureEnabled("auth")) {
     notFound();
@@ -50,7 +60,10 @@ export default async function AuthSignInPage({ searchParams }: AuthSignInPagePro
 
   const resolvedSearchParams = await resolveSearchParams(searchParams);
   const redirectTo = resolveRedirect(resolvedSearchParams);
-  const mode = resolveMode(resolvedSearchParams);
+  const inviteToken = resolveInvite(resolvedSearchParams);
+  const prefilledEmail = resolveEmail(resolvedSearchParams);
+  const explicitMode = typeof resolvedSearchParams?.mode === "string" ? resolvedSearchParams.mode : undefined;
+  const mode = inviteToken && !explicitMode ? "register" : resolveMode(resolvedSearchParams);
   const sessionUser = await getCurrentUser();
 
   if (sessionUser) {
@@ -68,7 +81,10 @@ export default async function AuthSignInPage({ searchParams }: AuthSignInPagePro
           {moduleMeta.description}
         </p>
       </div>
-      <SignInForm mode={mode} redirectTo={redirectTo} />
+      <div className="flex flex-col max-w-md gap-6">
+      <SignInForm mode={mode} redirectTo={redirectTo} inviteToken={inviteToken} email={prefilledEmail} />
+
+      </div>
       <p className="text-center text-xs text-muted-foreground">
         First time here? <Link href="/docs/getting-started" className="underline">Read the quickstart guide</Link>.
       </p>
