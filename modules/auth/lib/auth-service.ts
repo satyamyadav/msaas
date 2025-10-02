@@ -57,10 +57,6 @@ async function touchSession(id: string) {
   });
 }
 
-function getSessionTokenFromCookies() {
-  return cookies().get(SESSION_COOKIE_NAME)?.value;
-}
-
 export async function registerUser(email: string, password: string) {
   const normalizedEmail = normalizeEmail(email);
   const passwordHash = hashPassword(password);
@@ -111,16 +107,18 @@ export async function createSession(userId: string) {
     },
   });
 
-  cookies().set({
+  const cookieStore = await cookies();
+  cookieStore.set({
     ...getSessionCookieOptions(expiresAt),
     value: token,
   });
 }
 
 export async function destroySession() {
-  const token = getSessionTokenFromCookies();
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) {
-    cookies().delete(SESSION_COOKIE_NAME);
+    cookieStore.delete(SESSION_COOKIE_NAME);
     return;
   }
 
@@ -128,11 +126,12 @@ export async function destroySession() {
     where: { token },
   });
 
-  cookies().delete(SESSION_COOKIE_NAME);
+  cookieStore.delete(SESSION_COOKIE_NAME);
 }
 
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
-  const token = getSessionTokenFromCookies();
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!token) {
     return null;
   }
@@ -143,13 +142,11 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   });
 
   if (!session) {
-    cookies().delete(SESSION_COOKIE_NAME);
     return null;
   }
 
   if (session.expiresAt.getTime() <= Date.now()) {
     await prisma.authSession.delete({ where: { id: session.id } });
-    cookies().delete(SESSION_COOKIE_NAME);
     return null;
   }
 

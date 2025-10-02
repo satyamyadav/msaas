@@ -11,11 +11,21 @@ export const metadata = {
   title: "Sign in",
 };
 
+type SearchParams = Record<string, string | string[] | undefined>;
+
 type AuthSignInPageProps = {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<SearchParams>;
 };
 
-function resolveRedirect(searchParams: AuthSignInPageProps["searchParams"]) {
+async function resolveSearchParams(searchParams?: Promise<SearchParams>) {
+  if (!searchParams) {
+    return undefined;
+  }
+
+  return await searchParams;
+}
+
+function resolveRedirect(searchParams: SearchParams | undefined) {
   const value = typeof searchParams?.redirectTo === "string" ? searchParams.redirectTo : undefined;
   if (!value) {
     return "/billing";
@@ -28,7 +38,7 @@ function resolveRedirect(searchParams: AuthSignInPageProps["searchParams"]) {
   return value;
 }
 
-function resolveMode(searchParams: AuthSignInPageProps["searchParams"]) {
+function resolveMode(searchParams: SearchParams | undefined) {
   const value = typeof searchParams?.mode === "string" ? searchParams.mode : undefined;
   return value === "register" ? "register" : "login";
 }
@@ -38,8 +48,9 @@ export default async function AuthSignInPage({ searchParams }: AuthSignInPagePro
     notFound();
   }
 
-  const redirectTo = resolveRedirect(searchParams);
-  const mode = resolveMode(searchParams);
+  const resolvedSearchParams = await resolveSearchParams(searchParams);
+  const redirectTo = resolveRedirect(resolvedSearchParams);
+  const mode = resolveMode(resolvedSearchParams);
   const sessionUser = await getCurrentUser();
 
   if (sessionUser) {
