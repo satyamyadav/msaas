@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { Badge } from "@components/ui/badge";
 import { getModuleCopy, isFeatureEnabled } from "@lib/feature-flags";
 import { getCurrentUser } from "@modules/auth/actions";
 
@@ -49,12 +50,10 @@ export default async function AuthSignInPage({ searchParams }: AuthSignInPagePro
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-5xl flex-col items-center justify-center gap-10 p-6">
-      <div className="text-center">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-          {moduleMeta.displayName}
-        </p>
-        <h1 className="mt-2 text-4xl font-bold">Secure sign-in experience</h1>
-        <p className="mt-3 max-w-2xl text-balance text-base text-muted-foreground">
+      <div className="flex flex-col items-center gap-3 text-center">
+        <Badge>{moduleMeta.displayName}</Badge>
+        <h1 className="text-4xl font-bold">Secure sign-in experience</h1>
+        <p className="max-w-2xl text-balance text-base text-muted-foreground">
           {moduleMeta.description}
         </p>
       </div>

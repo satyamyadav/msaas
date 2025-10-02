@@ -1,10 +1,12 @@
 import Link from "next/link";
 
+import { ThemeToggle } from "@components/theme-toggle";
+import { Button, buttonVariants } from "@components/ui/button";
+import { cn } from "@lib/utils";
 import { getCurrentUser, signOutAction } from "@modules/auth/actions";
 
 const navigation = [
   { href: "/", label: "Overview" },
-  { href: "/themes", label: "Themes" },
   { href: "/sign-in", label: "Auth" },
   { href: "/billing", label: "Billing" },
 ];
@@ -19,29 +21,27 @@ export async function SiteHeader() {
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">@</span>
           <span>Modular SaaS Starter</span>
         </Link>
-        <nav className="flex items-center gap-3 text-sm text-muted-foreground">
+        <nav className="flex items-center gap-2 text-sm text-muted-foreground">
           {navigation.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-lg px-3 py-2 transition hover:bg-muted hover:text-foreground"
+              className={cn(buttonVariants({ variant: "ghost" }), "px-3")}
             >
               {item.label}
             </Link>
           ))}
+          <ThemeToggle />
           {sessionUser ? (
             <form action={signOutAction}>
-              <button
-                type="submit"
-                className="rounded-lg px-3 py-2 font-medium text-foreground transition hover:bg-muted"
-              >
+              <Button type="submit" variant="secondary">
                 Sign out
-              </button>
+              </Button>
             </form>
           ) : (
             <Link
               href="/sign-in?redirectTo=%2Fbilling"
-              className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground transition hover:bg-primary/90"
+              className={cn(buttonVariants({ size: "sm" }))}
             >
               Sign in
             </Link>

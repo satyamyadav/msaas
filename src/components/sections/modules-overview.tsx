@@ -1,5 +1,13 @@
 import Link from "next/link";
 
+import { Badge } from "@components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+} from "@components/ui/card";
 import { getModuleCopy, getEnabledModules } from "@lib/feature-flags";
 
 const ROUTE_LOOKUP: Record<string, string> = {
@@ -11,27 +19,26 @@ export function ModulesOverview() {
   const enabledModules = getEnabledModules();
 
   return (
-    <section className="mx-auto grid w-full max-w-6xl gap-6 px-6 pb-16 pt-10 sm:grid-cols-2 lg:grid-cols-3">
+    <section className="mx-auto grid w-full max-w-6xl gap-6 px-6 pb-20 pt-12 sm:grid-cols-2 lg:grid-cols-3">
       {enabledModules.map((moduleKey) => {
         const moduleConfig = getModuleCopy(moduleKey);
         const href = ROUTE_LOOKUP[moduleKey] ?? "/";
 
         return (
-          <Link
-            key={moduleKey}
-            href={href}
-            className="group flex h-full flex-col justify-between rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-          >
-            <div className="space-y-3">
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.25em] text-primary">
-                {moduleConfig.displayName}
-              </span>
-              <p className="text-sm text-muted-foreground">{moduleConfig.description}</p>
-            </div>
-            <div className="mt-6 flex items-center justify-between text-sm font-medium">
-              <span>Explore module</span>
-              <span className="transition group-hover:translate-x-1">→</span>
-            </div>
+          <Link key={moduleKey} href={href} className="group">
+            <Card className="flex h-full flex-col transition hover:-translate-y-1 hover:shadow-lg">
+              <CardHeader>
+                <Badge>{moduleConfig.displayName}</Badge>
+                <CardDescription>{moduleConfig.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0 text-sm text-muted-foreground">
+                Explore how this module integrates with auth flows, billing, and workspace management.
+              </CardContent>
+              <CardFooter className="mt-auto flex items-center justify-between text-sm font-medium text-primary">
+                <span>Open module</span>
+                <span className="transition-transform group-hover:translate-x-1">→</span>
+              </CardFooter>
+            </Card>
           </Link>
         );
       })}

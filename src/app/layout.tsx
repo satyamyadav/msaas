@@ -3,6 +3,7 @@ import { Inter, Roboto_Mono } from "next/font/google";
 
 import { SiteFooter } from "@components/sections/site-footer";
 import { SiteHeader } from "@components/sections/site-header";
+import { ThemeProvider } from "@components/theme-provider";
 
 import "./globals.css";
 
@@ -30,13 +31,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${sans.variable} ${mono.variable} antialiased bg-background text-foreground`}>
-        <div className="flex min-h-screen flex-col">
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
-        </div>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${sans.variable} ${mono.variable} antialiased`}>
+        <ThemeProvider>
+          <div className="flex min-h-screen flex-col bg-background text-foreground">
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );
