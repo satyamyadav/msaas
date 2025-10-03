@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
+import { PlatformRole, UserStatus } from "@prisma/client";
+
 import { prisma } from "@lib/db";
 
 const SESSION_COOKIE_NAME = "msaas_session";
@@ -12,6 +14,7 @@ export type SessionUser = {
   id: string;
   email: string;
   displayName: string | null;
+  platformRole: PlatformRole;
 };
 
 function normalizeEmail(email: string) {
@@ -89,6 +92,10 @@ export async function authenticateUser(email: string, password: string) {
     return null;
   }
 
+  if (user.status !== UserStatus.ACTIVE) {
+    return null;
+  }
+
   const isValid = verifyPassword(password, user.passwordHash);
   if (!isValid) {
     return null;
@@ -160,5 +167,14 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
     id: session.user.id,
     email: session.user.email,
     displayName: session.user.displayName,
+    platformRole: session.user.platformRole,
   };
 });
+
+export async function setUserPassword(userId: string, password: string) {
+  const passwordHash = hashPassword(password);
+  await prisma.authUser.update({
+    where: { id: userId },
+    data: { passwordHash },
+  });
+}

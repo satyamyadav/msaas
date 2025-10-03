@@ -1,33 +1,29 @@
 // source: modules/billing-stripe/prisma/schema.prisma
 model BillingSubscription {
-  id                String        @id @default(cuid())
-  organization      Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId    String        @unique
-  customerId        String
-  status            String
-  priceId           String
-  planTier          PlanTier      @default(PRO)
-  currentPeriodEnd  DateTime
-  cancelAtPeriodEnd Boolean       @default(false)
-  trialEndsAt       DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id             String   @id @default(cuid())
+  userId         String
+  user           AuthUser @relation(fields: [userId], references: [id])
+  plan           String
+  status         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 // source: modules/auth/prisma/schema.prisma
 model AuthUser {
-  id              String                 @id @default(cuid())
-  email           String                 @unique
-  passwordHash    String
-  displayName     String?
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String
+  displayName    String?
   emailVerifiedAt DateTime?
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
-  sessions        AuthSession[]
-  memberships     OrganizationMember[]
-  invitesSent     OrganizationInvite[]   @relation("InviteInvitedBy")
-  invitesAccepted OrganizationInvite[]   @relation("InviteAcceptedBy")
-  auditLogs       AuditLog[]             @relation("AuditLogActor")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  sessions       AuthSession[]
+  invitesSent    Invite[] @relation("InviteInvitedBy")
+  invitesAccepted Invite[] @relation("InviteAcceptedBy")
+  auditLogs      AuditLog[] @relation("AuditLogActor")
 }
 
 model AuthSession {
