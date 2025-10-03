@@ -5,13 +5,20 @@ import { getOrganizationAnalyticsSnapshot } from "@lib/server/analytics";
 import { markChecklistStep, getOrganizationBySlugForUser } from "@lib/server/organizations";
 import { getCurrentUser } from "@modules/auth/actions";
 
-export default async function AnalyticsPage({ params }: { params: { orgSlug: string } }) {
+type Params = Promise<{ orgSlug: string }>;
+
+async function resolveParams(params: Params) {
+  return params;
+}
+
+export default async function AnalyticsPage({ params }: { params: Params }) {
+  const { orgSlug } = await resolveParams(params);
   const user = await getCurrentUser();
   if (!user) {
     return null;
   }
 
-  const access = await getOrganizationBySlugForUser(params.orgSlug, user.id);
+  const access = await getOrganizationBySlugForUser(orgSlug, user.id);
   if (!access) {
     return null;
   }

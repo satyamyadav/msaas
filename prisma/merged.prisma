@@ -3,6 +3,49 @@
 
 generator client {
   provider = "prisma-client-js"
+
+}
+
+model BillingSubscription {
+  id                String        @id @default(cuid())
+  organization      Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId    String        @unique
+  customerId        String
+  status            String
+  priceId           String
+  planTier          PlanTier      @default(PRO)
+  currentPeriodEnd  DateTime
+  cancelAtPeriodEnd Boolean       @default(false)
+  trialEndsAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model AuthUser {
+  id              String                 @id @default(cuid())
+  email           String                 @unique
+  passwordHash    String
+  displayName     String?
+  emailVerifiedAt DateTime?
+  platformRole    PlatformRole           @default(MEMBER)
+  status          UserStatus             @default(ACTIVE)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  sessions        AuthSession[]
+  memberships     OrganizationMember[]
+  invitesSent     OrganizationInvite[]   @relation("InviteInvitedBy")
+  invitesAccepted OrganizationInvite[]   @relation("InviteAcceptedBy")
+  auditLogs       AuditLog[]             @relation("AuditLogActor")
+}
+
+model AuthSession {
+  id           String   @id @default(cuid())
+  token        String   @unique
+  user         AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  createdAt    DateTime @default(now())
+  lastActiveAt DateTime @default(now())
+  expiresAt    DateTime
 }
 
 datasource db {
@@ -15,11 +58,27 @@ enum PlanTier {
   PRO
 }
 
+enum PlatformRole {
+  MEMBER
+  ORG_ADMIN
+  ADMIN
+}
+
 enum MemberRole {
   OWNER
   ADMIN
   MEMBER
   VIEWER
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
 }
 
 enum MemberStatus {
@@ -56,6 +115,8 @@ model Organization {
   planTier                 PlanTier                @default(FREE)
   logoUrl                  String?
   primaryDomain            String?
+  status                   OrganizationStatus      @default(ACTIVE)
+  suspendedAt              DateTime?
   analyticsRetentionMonths Int                     @default(18)
   isOnboardingComplete     Boolean                 @default(false)
   createdAt                DateTime                @default(now())
@@ -246,34 +307,30 @@ model AuditLog {
 
 // source: modules/billing-stripe/prisma/schema.prisma
 model BillingSubscription {
-  id                String        @id @default(cuid())
-  organization      Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId    String        @unique
-  customerId        String
-  status            String
-  priceId           String
-  planTier          PlanTier      @default(PRO)
-  currentPeriodEnd  DateTime
-  cancelAtPeriodEnd Boolean       @default(false)
-  trialEndsAt       DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id             String   @id @default(cuid())
+  userId         String
+  user           AuthUser @relation(fields: [userId], references: [id])
+  plan           String
+  status         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 // source: modules/auth/prisma/schema.prisma
 model AuthUser {
-  id              String                 @id @default(cuid())
-  email           String                 @unique
-  passwordHash    String
-  displayName     String?
+  id             String   @id @default(cuid())
+  email          String   @unique
+  passwordHash   String
+  displayName    String?
   emailVerifiedAt DateTime?
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
-  sessions        AuthSession[]
-  memberships     OrganizationMember[]
-  invitesSent     OrganizationInvite[]   @relation("InviteInvitedBy")
-  invitesAccepted OrganizationInvite[]   @relation("InviteAcceptedBy")
-  auditLogs       AuditLog[]             @relation("AuditLogActor")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  sessions       AuthSession[]
+  invitesSent    Invite[] @relation("InviteInvitedBy")
+  invitesAccepted Invite[] @relation("InviteAcceptedBy")
+  auditLogs      AuditLog[] @relation("AuditLogActor")
 }
 
 model AuthSession {

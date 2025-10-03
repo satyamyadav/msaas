@@ -1,0 +1,11 @@
+{
+  "stripe": {
+    "enabled": true,
+    "webhookUrl": "/api/stripe/webhook"
+  },
+  "paddle": {
+    "enabled": false,
+    "vendorId": "",
+    "apiKey": ""
+  }
+}

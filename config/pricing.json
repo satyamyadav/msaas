@@ -1,0 +1,18 @@
+{
+  "plans": [
+    {
+      "id": "free",
+      "name": "Free",
+      "price": 0,
+      "currency": "USD",
+      "features": ["Up to 3 team members", "Basic analytics"]
+    },
+    {
+      "id": "pro",
+      "name": "Pro",
+      "price": 49,
+      "currency": "USD",
+      "features": ["Unlimited team members", "Advanced analytics", "Priority support"]
+    }
+  ]
+}
