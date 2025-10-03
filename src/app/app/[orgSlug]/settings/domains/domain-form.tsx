@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 
 import {
   Alert,
@@ -15,7 +15,7 @@ import { Label } from "@components/ui/label";
 import { initialDomainFormState, requestDomainAction } from "./actions";
 
 export function DomainRequestForm({ organizationSlug }: { organizationSlug: string }) {
-  const [state, formAction] = useFormState(requestDomainAction, initialDomainFormState);
+  const [state, formAction] = useActionState(requestDomainAction, initialDomainFormState);
 
   return (
     <Card>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 
 import {
   Alert,
@@ -15,7 +15,7 @@ import { Label } from "@components/ui/label";
 import { createApiKeyAction, initialApiKeyFormState } from "./actions";
 
 export function CreateApiKeyForm({ organizationSlug }: { organizationSlug: string }) {
-  const [state, formAction] = useFormState(createApiKeyAction, initialApiKeyFormState);
+  const [state, formAction] = useActionState(createApiKeyAction, initialApiKeyFormState);
 
   return (
     <Card>

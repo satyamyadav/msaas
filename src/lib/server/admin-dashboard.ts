@@ -35,7 +35,8 @@ export async function getPlatformMetrics(): Promise<PlatformMetrics> {
   const activeOrganizations = organizations.filter((org) => org.status === OrganizationStatus.ACTIVE).length;
   const suspendedOrganizations = organizations.filter((org) => org.status === OrganizationStatus.SUSPENDED).length;
   const activeUsers = users.filter((user) => user.status === UserStatus.ACTIVE).length;
-  const admins = users.filter((user) => user.platformRole === PlatformRole.ADMIN).length;
+  const adminRoles = new Set<PlatformRole>([PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN]);
+  const admins = users.filter((user) => adminRoles.has(user.platformRole)).length;
 
   const churnRate = totalOrganizations === 0 ? 0 : suspendedOrganizations / totalOrganizations;
 

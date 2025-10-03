@@ -13,6 +13,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === "/admin/sign-in" || pathname.startsWith("/admin/sign-in/")) {
+    return NextResponse.next();
+  }
+
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   if (!token) {
     return redirectToLogin(request);
@@ -31,7 +35,9 @@ export async function middleware(request: NextRequest) {
     return redirectToLogin(request, true);
   }
 
-  if (session.user.platformRole !== PlatformRole.ADMIN) {
+  const allowedPlatformRoles = [PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN];
+
+  if (!allowedPlatformRoles.includes(session.user.platformRole)) {
     return NextResponse.redirect(new URL("/app", request.url));
   }
 
@@ -39,7 +45,9 @@ export async function middleware(request: NextRequest) {
 }
 
 function redirectToLogin(request: NextRequest, clearCookie = false) {
-  const response = NextResponse.redirect(new URL(`/sign-in?redirectTo=${encodeURIComponent("/admin")}`, request.url));
+  const redirectTarget = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  const loginUrl = new URL(`/admin/sign-in?redirectTo=${encodeURIComponent(redirectTarget)}`, request.url);
+  const response = NextResponse.redirect(loginUrl);
   if (clearCookie) {
     response.cookies.delete(SESSION_COOKIE_NAME);
   }

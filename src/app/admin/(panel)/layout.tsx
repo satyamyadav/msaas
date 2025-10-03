@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 
 import { AdminNav } from "@/components/admin/admin-nav";
 import { requireAdminUser } from "@/lib/server/admin-auth";
+import { PlatformRole } from "@prisma/client";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const user = await requireAdminUser();
@@ -14,7 +15,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <div className="flex flex-1">
         <aside className="hidden w-64 border-r bg-card/40 p-6 md:block">
           <div className="mb-6 space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Owner admin</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              {user.platformRole === PlatformRole.SUPER_ADMIN ? "Super admin" : "Platform admin"}
+            </p>
             <h1 className="text-xl font-semibold">Control center</h1>
           </div>
           <AdminNav />

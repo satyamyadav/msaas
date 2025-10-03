@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 
 import {
   Alert,
@@ -40,7 +41,7 @@ function SubmitButton({ label }: { label: string }) {
 
 export function SignInForm({ mode, redirectTo, inviteToken, email }: SignInFormProps) {
   const action = mode === "register" ? signUpAction : signInAction;
-  const [state, formAction] = useFormState<AuthFormState, FormData>(action, authFormInitialState);
+  const [state, formAction] = useActionState<AuthFormState, FormData>(action, authFormInitialState);
 
   const isRegister = mode === "register";
   const params = new URLSearchParams({ redirectTo });

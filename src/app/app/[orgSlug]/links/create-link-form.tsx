@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useFormState } from "react-dom";
+import { useActionState, useEffect } from "react";
 
 import {
   Alert,
@@ -16,7 +15,7 @@ import { Label } from "@components/ui/label";
 import { createLinkAction, initialLinkFormState } from "./actions";
 
 export function CreateLinkForm({ organizationSlug }: { organizationSlug: string }) {
-  const [state, formAction] = useFormState(createLinkAction, initialLinkFormState);
+  const [state, formAction] = useActionState(createLinkAction, initialLinkFormState);
 
   useEffect(() => {
     if (state.status === "success") {

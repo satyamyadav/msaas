@@ -19,6 +19,7 @@
 
   ## Coding Style & Naming Conventions
   - Use TypeScript with 2-space indentation; export functions with explicit return types.
+  - Use React 19.x syntax and nextjs 15.x syntax only.
   - Build UI strictly with shadcn/ui components (`@/components/ui/*`) and Tailwind utility classes; no other component libraries.
   - For new components required add from the library for example `npx shadcn@latest add dropdown-menu`.
   - Component files live under `src/components/<Feature>/<Component>.tsx`; co-locate variant-specific Tailwind class maps when needed.

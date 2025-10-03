@@ -23,6 +23,20 @@ A Next.js 14 starter template that demonstrates how to wire feature flags, eject
    ```
 4. Visit [http://localhost:3000](http://localhost:3000) to explore the starter experience.
 
+### Bootstrapping a platform super admin
+
+1. Provide environment variables in `.env` (or your shell) before seeding:
+   - `PLATFORM_SUPERADMIN_EMAIL`
+   - `PLATFORM_SUPERADMIN_PASSWORD`
+   - Optional: `PLATFORM_SUPERADMIN_NAME`, `PLATFORM_SUPERADMIN_FORCE_RESET=true`
+2. Run the seed script once your database is migrated:
+   ```bash
+   npm run bootstrap:super-admin
+   # or
+   npx prisma db seed
+   ```
+3. Sign in to the owner console at [http://localhost:3000/admin/sign-in](http://localhost:3000/admin/sign-in) using the credentials above. Use this super admin account to create additional platform admins without impacting workspace users.
+
 ## Project Structure
 
 ```

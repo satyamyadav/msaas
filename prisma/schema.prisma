@@ -59,6 +59,7 @@ enum PlatformRole {
   MEMBER
   ORG_ADMIN
   ADMIN
+  SUPER_ADMIN
 }
 
 enum MemberRole {

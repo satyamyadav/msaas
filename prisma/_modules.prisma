@@ -1,14 +1,3 @@
-// source: modules/billing-stripe/prisma/schema.prisma
-model BillingSubscription {
-  id             String   @id @default(cuid())
-  userId         String
-  user           AuthUser @relation(fields: [userId], references: [id])
-  plan           String
-  status         String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
-
 // source: modules/auth/prisma/schema.prisma
 model AuthUser {
   id             String   @id @default(cuid())
@@ -34,4 +23,15 @@ model AuthSession {
   createdAt    DateTime @default(now())
   lastActiveAt DateTime @default(now())
   expiresAt    DateTime
+}
+
+// source: modules/billing-stripe/prisma/schema.prisma
+model BillingSubscription {
+  id             String   @id @default(cuid())
+  userId         String
+  user           AuthUser @relation(fields: [userId], references: [id])
+  plan           String
+  status         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

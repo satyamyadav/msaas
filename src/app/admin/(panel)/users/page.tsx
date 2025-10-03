@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { prisma } from "@/lib/db";
+import { requireAdminUser } from "@/lib/server/admin-auth";
 import { PlatformRole, UserStatus } from "@prisma/client";
 import { updateUserRoleAction, updateUserStatusAction } from "./actions";
 
@@ -33,6 +34,8 @@ export default async function AdminUsersPage({
 }) {
   const resolvedSearchParams = await resolveSearchParams(searchParams);
   const query = getSearchQuery(resolvedSearchParams);
+  const currentAdmin = await requireAdminUser();
+  const canManagePlatformRoles = currentAdmin.platformRole === PlatformRole.SUPER_ADMIN;
   const users = await prisma.authUser.findMany({
     where: query
       ? {
@@ -64,6 +67,11 @@ export default async function AdminUsersPage({
           </form>
         </CardHeader>
         <CardContent className="overflow-x-auto">
+          {!canManagePlatformRoles ? (
+            <p className="mb-4 text-xs text-muted-foreground">
+              You have read-only access. Ask a super admin to update platform roles.
+            </p>
+          ) : null}
           <table className="w-full min-w-[640px] text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr className="border-b">
@@ -94,6 +102,7 @@ export default async function AdminUsersPage({
                           name="platformRole"
                           defaultValue={user.platformRole}
                           className="h-9 rounded-md border border-input bg-background px-2 text-xs"
+                          disabled={!canManagePlatformRoles}
                         >
                           {Object.values(PlatformRole).map((role) => (
                             <option key={role} value={role}>
@@ -101,7 +110,7 @@ export default async function AdminUsersPage({
                             </option>
                           ))}
                         </select>
-                        <Button type="submit" size="sm" variant="outline">
+                        <Button type="submit" size="sm" variant="outline" disabled={!canManagePlatformRoles}>
                           Update
                         </Button>
                       </form>

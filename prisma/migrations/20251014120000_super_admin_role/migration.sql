@@ -1,0 +1,2 @@
+-- Add SUPER_ADMIN to PlatformRole enum
+ALTER TYPE "PlatformRole" ADD VALUE IF NOT EXISTS 'SUPER_ADMIN';

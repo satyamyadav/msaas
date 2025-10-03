@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 
 import { Button } from "@components/ui/button";
 import { Card, CardContent } from "@components/ui/card";
@@ -15,7 +15,7 @@ import {
 import { initialInviteFormState, inviteMemberAction } from "./actions";
 
 export function InviteMemberForm({ organizationSlug }: { organizationSlug: string }) {
-  const [state, formAction] = useFormState(inviteMemberAction, initialInviteFormState);
+  const [state, formAction] = useActionState(inviteMemberAction, initialInviteFormState);
 
   return (
     <Card>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { prisma } from "@/lib/db";
+import { requireAdminUser } from "@/lib/server/admin-auth";
 import { PlatformRole, UserStatus } from "@prisma/client";
 import {
   impersonateUserAction,
@@ -23,6 +24,7 @@ async function resolveParams(params: Promise<{ userId: string }>) {
 
 export default async function AdminUserDetailPage(props: AdminUserPageProps) {
   const { userId } = await resolveParams(props.params);
+  const currentAdmin = await requireAdminUser();
   const user = await prisma.authUser.findUnique({
     where: { id: userId },
     include: {
@@ -40,6 +42,10 @@ export default async function AdminUserDetailPage(props: AdminUserPageProps) {
   }
 
   const isBlocked = user.status === UserStatus.BLOCKED;
+  const canManagePlatformRoles = currentAdmin.platformRole === PlatformRole.SUPER_ADMIN;
+  const targetIsSuperAdmin = user.platformRole === PlatformRole.SUPER_ADMIN;
+  const canEditSuperAdmin = targetIsSuperAdmin ? canManagePlatformRoles : true;
+  const disableRoleForm = !canManagePlatformRoles;
 
   return (
     <div className="flex flex-col gap-8">
@@ -61,7 +67,7 @@ export default async function AdminUserDetailPage(props: AdminUserPageProps) {
             <form action={updateUserStatusAction} className="flex flex-wrap gap-2">
               <input type="hidden" name="userId" value={user.id} />
               <input type="hidden" name="status" value={isBlocked ? UserStatus.ACTIVE : UserStatus.BLOCKED} />
-              <Button type="submit" variant={isBlocked ? "secondary" : "destructive"}>
+              <Button type="submit" variant={isBlocked ? "secondary" : "destructive"} disabled={!canEditSuperAdmin}>
                 {isBlocked ? "Unblock user" : "Block user"}
               </Button>
             </form>
@@ -71,6 +77,7 @@ export default async function AdminUserDetailPage(props: AdminUserPageProps) {
                 name="platformRole"
                 defaultValue={user.platformRole}
                 className="h-9 rounded-md border border-input bg-background px-2 text-xs"
+                disabled={disableRoleForm}
               >
                 {Object.values(PlatformRole).map((role) => (
                   <option key={role} value={role}>
@@ -78,7 +85,7 @@ export default async function AdminUserDetailPage(props: AdminUserPageProps) {
                   </option>
                 ))}
               </select>
-              <Button type="submit" variant="outline">
+              <Button type="submit" variant="outline" disabled={disableRoleForm}>
                 Update role
               </Button>
             </form>
@@ -92,8 +99,13 @@ export default async function AdminUserDetailPage(props: AdminUserPageProps) {
                 placeholder="New password"
                 className="w-full sm:w-64"
               />
-              <Button type="submit">Reset password</Button>
+              <Button type="submit" disabled={!canEditSuperAdmin}>
+                Reset password
+              </Button>
             </form>
+            {!canManagePlatformRoles ? (
+              <p className="text-xs text-muted-foreground">Only super admins can adjust platform roles or super admin accounts.</p>
+            ) : null}
           </CardContent>
         </Card>
         <Card>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 
 import {
   Alert,
@@ -23,7 +23,7 @@ export function OrganizationProfileForm({
   defaultName: string;
   defaultPrimaryDomain: string | null;
 }) {
-  const [state, formAction] = useFormState(updateOrganizationProfileAction, initialSettingsFormState);
+  const [state, formAction] = useActionState(updateOrganizationProfileAction, initialSettingsFormState);
 
   return (
     <Card>
