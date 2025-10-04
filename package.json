@@ -9,7 +9,8 @@
     "lint": "next lint",
     "db:merge": "node scripts/merge-prisma.mjs",
     "postinstall": "npm run db:merge && prisma generate --schema prisma/merged.prisma",
-    "bootstrap:super-admin": "node scripts/bootstrap-super-admin.mjs"
+    "bootstrap:super-admin": "node scripts/bootstrap-super-admin.mjs",
+    "test:e2e": "playwright test"
   },
   "prisma": {
     "seed": "node scripts/bootstrap-super-admin.mjs"
@@ -33,12 +34,13 @@
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.1",
     "@types/node": "^20",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "dotenv": "^16.6.1",
     "eslint": "^8",
     "eslint-config-next": "^15.5.4",
-    "dotenv": "^16.6.1",
     "postcss": "^8",
     "prisma": "^6.16.3",
     "tailwindcss": "^3.4.1",
