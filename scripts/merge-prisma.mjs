@@ -48,6 +48,59 @@ async function collectPrismaFragments(startDir) {
   return files;
 }
 
+function extractDeclarativeBlocks(source) {
+  const lines = source.split(/\r?\n/);
+  const blocks = [];
+  let pendingComments = [];
+  let current = null;
+  let braceDepth = 0;
+
+  const flushPending = () => {
+    pendingComments = [];
+  };
+
+  for (const line of lines) {
+    if (current) {
+      current.lines.push(line);
+      const openings = (line.match(/\{/g) ?? []).length;
+      const closings = (line.match(/\}/g) ?? []).length;
+      braceDepth += openings - closings;
+      if (braceDepth <= 0) {
+        blocks.push(current);
+        current = null;
+        braceDepth = 0;
+        flushPending();
+      }
+      continue;
+    }
+
+    if (/^\s*(?:\/\/.*)?$/.test(line)) {
+      pendingComments.push(line);
+      continue;
+    }
+
+    const match = line.match(/^\s*(model|enum|type)\s+(\w+)/);
+    if (match) {
+      current = {
+        kind: match[1],
+        name: match[2],
+        lines: [...pendingComments, line],
+      };
+      braceDepth = (line.match(/\{/g) ?? []).length - (line.match(/\}/g) ?? []).length;
+      if (braceDepth <= 0) {
+        blocks.push(current);
+        current = null;
+        braceDepth = 0;
+        flushPending();
+      }
+    } else {
+      flushPending();
+    }
+  }
+
+  return blocks;
+}
+
 async function main() {
   const baseSchema = await readIfExists(BASE_SCHEMA);
   if (!baseSchema) {
@@ -55,18 +108,35 @@ async function main() {
     return;
   }
 
+  const declaredNames = new Set(
+    extractDeclarativeBlocks(baseSchema).map((block) => block.name),
+  );
+
   const moduleDirs = [path.join(ROOT, "modules")];
   const moduleFiles = (
     await Promise.all(moduleDirs.map((dir) => collectPrismaFragments(dir)))
   ).flat();
 
-  const moduleContents = await Promise.all(
-    moduleFiles.map(async (file) => {
-      const contents = await fs.readFile(file, "utf8");
-      const relativePath = path.relative(ROOT, file);
-      return `// source: ${relativePath}\n${contents.trim()}\n`;
-    }),
-  );
+  const moduleContents = [];
+  for (const file of moduleFiles) {
+    const contents = await fs.readFile(file, "utf8");
+    const relativePath = path.relative(ROOT, file);
+    const blocks = extractDeclarativeBlocks(contents);
+    const uniqueBlocks = blocks.filter((block) => {
+      if (declaredNames.has(block.name)) {
+        return false;
+      }
+      declaredNames.add(block.name);
+      return true;
+    });
+
+    if (uniqueBlocks.length > 0) {
+      const rendered = uniqueBlocks
+        .map((block) => `// source: ${relativePath}\n${block.lines.join("\n").trim()}\n`)
+        .join("\n");
+      moduleContents.push(rendered);
+    }
+  }
 
   const mergedModuleContent = moduleContents.join("\n");
   await fs.writeFile(MODULE_OUTPUT, mergedModuleContent, "utf8");
