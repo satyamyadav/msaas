@@ -6,7 +6,8 @@ import { PlatformRole } from "@prisma/client";
 export async function requireAdminUser() {
   const user = await getCurrentUser();
   if (!user) {
-    redirect(`/admin/sign-in?redirectTo=${encodeURIComponent("/admin")}`);
+    const params = new URLSearchParams({ redirectTo: "/admin", mode: "login" });
+    redirect(`/sign-in?${params.toString()}`);
   }
 
   if (![PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN].includes(user.platformRole)) {

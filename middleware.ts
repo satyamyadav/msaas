@@ -13,10 +13,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname === "/admin/sign-in" || pathname.startsWith("/admin/sign-in/")) {
-    return NextResponse.next();
-  }
-
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   if (!token) {
     return redirectToLogin(request);
@@ -46,7 +42,9 @@ export async function middleware(request: NextRequest) {
 
 function redirectToLogin(request: NextRequest, clearCookie = false) {
   const redirectTarget = `${request.nextUrl.pathname}${request.nextUrl.search}`;
-  const loginUrl = new URL(`/admin/sign-in?redirectTo=${encodeURIComponent(redirectTarget)}`, request.url);
+  const loginUrl = new URL("/sign-in", request.url);
+  loginUrl.searchParams.set("redirectTo", redirectTarget);
+  loginUrl.searchParams.set("mode", "login");
   const response = NextResponse.redirect(loginUrl);
   if (clearCookie) {
     response.cookies.delete(SESSION_COOKIE_NAME);
