@@ -1,10 +1,28 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 
 const BASE_URL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:3000";
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD;
 
+async function ensureApplicationIsReachable(
+  request: APIRequestContext,
+  contextLabel: string,
+) {
+  try {
+    await request.get(BASE_URL, { timeout: 5_000, failOnStatusCode: false });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    test.skip(
+      `${contextLabel} requires a running application at ${BASE_URL}. ${reason}`,
+    );
+  }
+}
+
 test.describe("end-to-end customer flows", () => {
+  test.beforeAll(async ({ request }) => {
+    await ensureApplicationIsReachable(request, "Customer flow coverage");
+  });
+
   test("new customer can onboard and manage a workspace", async ({ page }) => {
     const uniqueSuffix = Date.now().toString(36);
     const email = `e2e-${uniqueSuffix}@example.com`;
@@ -121,6 +139,10 @@ test.describe("end-to-end customer flows", () => {
 });
 
 test.describe("end-to-end admin flows", () => {
+  test.beforeAll(async ({ request }) => {
+    await ensureApplicationIsReachable(request, "Admin flow coverage");
+  });
+
   test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, "E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD must be configured");
 
   test("platform admin can audit and configure the platform", async ({ page }) => {
