@@ -1,22 +1,9 @@
-import { test, expect, type APIRequestContext } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
-const BASE_URL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:3000";
+import { BASE_URL, ensureApplicationIsReachable } from "./test-helpers";
+
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD;
-
-async function ensureApplicationIsReachable(
-  request: APIRequestContext,
-  contextLabel: string,
-) {
-  try {
-    await request.get(BASE_URL, { timeout: 5_000, failOnStatusCode: false });
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    test.skip(
-      `${contextLabel} requires a running application at ${BASE_URL}. ${reason}`,
-    );
-  }
-}
 
 test.describe("end-to-end customer flows", () => {
   test.beforeAll(async ({ request }) => {
