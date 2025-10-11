@@ -28,8 +28,10 @@ const shouldAutoConnect = process.env.NODE_ENV === "development";
 
 if (shouldAutoConnect) {
   void connectToDatabase().catch((error) => {
-    console.error("Failed to establish a database connection.", error);
-    throw error;
+    console.warn(
+      "Skipping automatic Prisma connection because the database is unavailable. Start your database to enable live data.",
+    );
+    console.debug(error);
   });
 }
 
