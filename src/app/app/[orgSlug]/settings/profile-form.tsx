@@ -12,7 +12,8 @@ import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 
-import { initialSettingsFormState, updateOrganizationProfileAction } from "./actions";
+import { updateOrganizationProfileAction } from "./actions";
+import type { SettingsFormState } from "./actions";
 
 export function OrganizationProfileForm({
   organizationSlug,
@@ -23,7 +24,8 @@ export function OrganizationProfileForm({
   defaultName: string;
   defaultPrimaryDomain: string | null;
 }) {
-  const [state, formAction] = useActionState(updateOrganizationProfileAction, initialSettingsFormState);
+  const initialState: SettingsFormState = { status: "idle" };
+  const [state, formAction] = useActionState(updateOrganizationProfileAction, initialState);
 
   return (
     <Card>

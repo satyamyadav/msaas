@@ -10,8 +10,6 @@ export type SettingsFormState =
   | { status: "success"; message: string }
   | { status: "error"; message: string };
 
-export const initialSettingsFormState: SettingsFormState = { status: "idle" };
-
 export async function updateOrganizationProfileAction(_: SettingsFormState, formData: FormData): Promise<SettingsFormState> {
   const slug = formData.get("organizationSlug");
   const name = formData.get("name");

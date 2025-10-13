@@ -8,12 +8,7 @@ import { createInvite, revokeInvite } from "@lib/server/invitations";
 import { getOrganizationBySlugForUser } from "@lib/server/organizations";
 import { getCurrentUser } from "@modules/auth/actions";
 
-export type InviteFormState =
-  | { status: "idle" }
-  | { status: "success"; message: string }
-  | { status: "error"; message: string };
-
-export const initialInviteFormState: InviteFormState = { status: "idle" };
+import type { InviteFormState } from "./state";
 
 export async function inviteMemberAction(_: InviteFormState, formData: FormData): Promise<InviteFormState> {
   const slug = formData.get("organizationSlug");

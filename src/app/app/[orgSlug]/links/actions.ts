@@ -11,8 +11,6 @@ export type LinkFormState =
   | { status: "success"; message: string }
   | { status: "error"; message: string };
 
-export const initialLinkFormState: LinkFormState = { status: "idle" };
-
 export async function createLinkAction(_: LinkFormState, formData: FormData): Promise<LinkFormState> {
   const organizationSlug = formData.get("organizationSlug");
   const destinationUrl = formData.get("destinationUrl");

@@ -11,8 +11,6 @@ export type DomainFormState =
   | { status: "success"; message: string }
   | { status: "error"; message: string };
 
-export const initialDomainFormState: DomainFormState = { status: "idle" };
-
 export async function requestDomainAction(_: DomainFormState, formData: FormData): Promise<DomainFormState> {
   const slug = formData.get("organizationSlug");
   const domain = formData.get("domain");

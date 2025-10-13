@@ -12,10 +12,13 @@ import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 
-import { initialDomainFormState, requestDomainAction } from "./actions";
+import { requestDomainAction } from "./actions";
+import type { DomainFormState } from "./actions";
+
+const initialState: DomainFormState = { status: "idle" };
 
 export function DomainRequestForm({ organizationSlug }: { organizationSlug: string }) {
-  const [state, formAction] = useActionState(requestDomainAction, initialDomainFormState);
+  const [state, formAction] = useActionState(requestDomainAction, initialState);
 
   return (
     <Card>

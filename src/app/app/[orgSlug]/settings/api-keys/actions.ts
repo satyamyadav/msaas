@@ -11,8 +11,6 @@ export type ApiKeyFormState =
   | { status: "success"; secret: string }
   | { status: "error"; message: string };
 
-export const initialApiKeyFormState: ApiKeyFormState = { status: "idle" };
-
 export async function createApiKeyAction(_: ApiKeyFormState, formData: FormData): Promise<ApiKeyFormState> {
   const slug = formData.get("organizationSlug");
   const label = formData.get("label");

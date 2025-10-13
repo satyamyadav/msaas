@@ -12,7 +12,8 @@ import {
   AlertTitle,
 } from "@components/ui/alert";
 
-import { initialInviteFormState, inviteMemberAction } from "./actions";
+import { inviteMemberAction } from "./actions";
+import { initialInviteFormState } from "./state";
 
 export function InviteMemberForm({ organizationSlug }: { organizationSlug: string }) {
   const [state, formAction] = useActionState(inviteMemberAction, initialInviteFormState);

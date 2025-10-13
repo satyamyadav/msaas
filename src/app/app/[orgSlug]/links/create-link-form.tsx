@@ -12,10 +12,13 @@ import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 
-import { createLinkAction, initialLinkFormState } from "./actions";
+import { createLinkAction } from "./actions";
+import type { LinkFormState } from "./actions";
+
+const initialState: LinkFormState = { status: "idle" };
 
 export function CreateLinkForm({ organizationSlug }: { organizationSlug: string }) {
-  const [state, formAction] = useActionState(createLinkAction, initialLinkFormState);
+  const [state, formAction] = useActionState(createLinkAction, initialState);
 
   useEffect(() => {
     if (state.status === "success") {

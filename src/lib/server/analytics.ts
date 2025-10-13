@@ -39,15 +39,23 @@ type AnalyticsSnapshot = {
   topCountries: TopItem[];
 };
 
-export async function getOrganizationAnalyticsSnapshot(organizationId: string, range: AnalyticsRange): Promise<AnalyticsSnapshot> {
+type OrganizationAnalyticsRequest = AnalyticsRange & {
+  organizationId: string;
+};
+
+export async function getOrganizationAnalyticsSnapshot({
+  organizationId,
+  from,
+  to,
+}: OrganizationAnalyticsRequest): Promise<AnalyticsSnapshot> {
   const events = await prisma.clickEvent.findMany({
     where: {
       link: {
         organizationId,
       },
       occurredAt: {
-        gte: range.from,
-        lte: range.to,
+        gte: from,
+        lte: to,
       },
     },
     include: {
@@ -117,9 +125,9 @@ export async function getOrganizationAnalyticsSnapshot(organizationId: string, r
     .sort((a, b) => b.value - a.value)
     .slice(0, 10);
 
-  const totalDays = differenceInCalendarDays(range.to, range.from) + 1;
+  const totalDays = differenceInCalendarDays(to, from) + 1;
   const timelineDays = totalDays > 60 ? 60 : totalDays;
-  const timelineDates = eachDayOfInterval({ start: startOfDay(range.from), end: startOfDay(range.to) }).slice(-timelineDays);
+  const timelineDates = eachDayOfInterval({ start: startOfDay(from), end: startOfDay(to) }).slice(-timelineDays);
 
   const timeline = timelineDates.map((date) => {
     const key = formatISO(date, { representation: "date" });

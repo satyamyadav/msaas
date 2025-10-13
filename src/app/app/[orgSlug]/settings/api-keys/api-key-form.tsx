@@ -12,10 +12,12 @@ import { Card, CardContent } from "@components/ui/card";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 
-import { createApiKeyAction, initialApiKeyFormState } from "./actions";
+import { createApiKeyAction } from "./actions";
+import type { ApiKeyFormState } from "./actions";
 
 export function CreateApiKeyForm({ organizationSlug }: { organizationSlug: string }) {
-  const [state, formAction] = useActionState(createApiKeyAction, initialApiKeyFormState);
+  const initialState: ApiKeyFormState = { status: "idle" };
+  const [state, formAction] = useActionState(createApiKeyAction, initialState);
 
   return (
     <Card>
