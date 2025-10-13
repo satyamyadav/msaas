@@ -1,6 +1,6 @@
 import { addMonths, startOfMonth } from "date-fns";
 
-import { LinkStatus, PlanTier } from "@prisma/client";
+import { LinkStatus, OrganizationStatus, PlanTier, Prisma } from "@prisma/client";
 
 import { prisma } from "@lib/db";
 import { hashIdentifier, randomId, slugify } from "@lib/utils";
@@ -496,6 +496,130 @@ export async function purgeExpiredLinks(now = new Date()) {
   });
 
   return links.length;
+}
+
+type RedirectLinkRecord = {
+  id: string;
+  destinationUrl: string;
+};
+
+type ResolveLinkOptions = {
+  slug: string;
+  domain?: string | null;
+  host?: string | null;
+};
+
+const baseOrganizationFilter = {
+  status: OrganizationStatus.ACTIVE,
+  deletedAt: null,
+} satisfies Prisma.OrganizationWhereInput;
+
+const redirectLinkSelection = {
+  id: true,
+  destinationUrl: true,
+} as const;
+
+function buildSlugFilter(slug: string): Prisma.StringFilter {
+  return {
+    equals: slug,
+    mode: "insensitive",
+  };
+}
+
+function normalizeCandidate(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed.toLowerCase() : null;
+}
+
+export async function resolveLinkForRedirect({ slug, domain, host }: ResolveLinkOptions): Promise<RedirectLinkRecord | null> {
+  const normalizedSlug = slug.trim();
+  if (!normalizedSlug) {
+    return null;
+  }
+
+  const normalizedDomain = normalizeCandidate(domain);
+  const normalizedHost = normalizeCandidate(host);
+  const now = new Date();
+
+  const baseWhere = (): Prisma.LinkWhereInput => ({
+    status: LinkStatus.ACTIVE,
+    slug: buildSlugFilter(normalizedSlug),
+    OR: [
+      { expiresAt: null },
+      {
+        expiresAt: {
+          gt: now,
+        },
+      },
+    ],
+    organization: {
+      ...baseOrganizationFilter,
+    },
+  });
+
+  const attempts: Prisma.LinkWhereInput[] = [];
+
+  if (normalizedDomain) {
+    attempts.push({
+      ...baseWhere(),
+      domain: {
+        domain: {
+          equals: normalizedDomain,
+          mode: "insensitive",
+        },
+      },
+    });
+  }
+
+  if (normalizedHost) {
+    attempts.push({
+      ...baseWhere(),
+      domain: {
+        domain: {
+          equals: normalizedHost,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    attempts.push({
+      ...baseWhere(),
+      organization: {
+        ...baseOrganizationFilter,
+        primaryDomain: {
+          equals: normalizedHost,
+          mode: "insensitive",
+        },
+      },
+      domainId: null,
+    });
+  }
+
+  attempts.push({
+    ...baseWhere(),
+    domainId: null,
+  });
+
+  for (const where of attempts) {
+    const link = await prisma.link.findFirst({
+      where,
+      select: redirectLinkSelection,
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+    if (link) {
+      return {
+        id: link.id,
+        destinationUrl: link.destinationUrl,
+      };
+    }
+  }
+
+  return null;
 }
 
 export async function computeUsageStats(organizationId: string) {

@@ -11,13 +11,14 @@ export async function SiteHeader() {
   const organizations = sessionUser ? await getOrganizationsForUser(sessionUser.id) : [];
   const defaultOrgSlug = organizations[0]?.organization.slug;
 
-  const navigation = [
-    { href: "/", label: "Overview" },
-    { href: "/docs/getting-started", label: "Docs" },
-    sessionUser
-      ? { href: defaultOrgSlug ? `/app/${defaultOrgSlug}` : "/app", label: "Dashboard" }
-      : { href: "/pricing", label: "Pricing" },
-  ];
+  const navigation = sessionUser
+    ? [
+        { href: "/", label: "Overview" },
+        { href: "/docs/getting-started", label: "Docs" },
+        { href: "/pricing", label: "Pricing" },
+        { href: defaultOrgSlug ? `/app/${defaultOrgSlug}` : "/app", label: "Dashboard" },
+      ]
+    : [];
 
   return (
     <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur">
@@ -44,11 +45,8 @@ export async function SiteHeader() {
               </Button>
             </form>
           ) : (
-            <Link
-              href="/sign-in?redirectTo=%2Fbilling"
-              className={cn(buttonVariants({ size: "sm" }))}
-            >
-              Sign in
+            <Link href="/sign-in" className={cn(buttonVariants({ size: "sm" }))}>
+              Log in
             </Link>
           )}
         </nav>

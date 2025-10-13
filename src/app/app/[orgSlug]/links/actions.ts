@@ -8,7 +8,7 @@ import { getCurrentUser } from "@modules/auth/actions";
 
 export type LinkFormState =
   | { status: "idle" }
-  | { status: "success"; message: string }
+  | { status: "success"; message: string; link: { slug: string; domain: string | null } }
   | { status: "error"; message: string };
 
 export async function createLinkAction(_: LinkFormState, formData: FormData): Promise<LinkFormState> {
@@ -35,8 +35,9 @@ export async function createLinkAction(_: LinkFormState, formData: FormData): Pr
     return { status: "error", message: "Organization not found." };
   }
 
+  let createdLink: Awaited<ReturnType<typeof createLink>>;
   try {
-    await createLink({
+    createdLink = await createLink({
       organizationId: access.organization.id,
       membershipId: access.membership.id,
       destinationUrl: destinationUrl.trim(),
@@ -55,7 +56,15 @@ export async function createLinkAction(_: LinkFormState, formData: FormData): Pr
     return { status: "error", message: "Unable to create link. Please try again." };
   }
 
+  revalidatePath(`/app/${organizationSlug}`);
   revalidatePath(`/app/${organizationSlug}/links`);
 
-  return { status: "success", message: "Short link created." };
+  return {
+    status: "success",
+    message: "Short link created.",
+    link: {
+      slug: createdLink.slug,
+      domain: createdLink.domain?.domain ?? null,
+    },
+  };
 }

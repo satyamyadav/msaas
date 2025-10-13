@@ -21,8 +21,8 @@ const NAV_ITEMS: { heading: string; items: NavItem[] }[] = [
   {
     heading: "Workspace",
     items: [
-      { label: "Overview", href: (slug) => `/app/${slug}`, icon: LayoutDashboard },
-      { label: "Links", href: (slug) => `/app/${slug}/links`, icon: LinkIcon },
+      { label: "Links", href: (slug) => `/app/${slug}`, icon: LinkIcon },
+      { label: "Overview", href: (slug) => `/app/${slug}/links`, icon: LayoutDashboard },
       { label: "Analytics", href: (slug) => `/app/${slug}/analytics`, icon: BarChart3 },
     ],
   },

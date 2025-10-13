@@ -10,7 +10,7 @@ import {
   registerUser,
 } from "@modules/auth/lib/auth-service";
 
-import { InviteStatus } from "@prisma/client";
+import { InviteStatus, PlatformRole } from "@prisma/client";
 import { prisma } from "@lib/db";
 import { acceptInvite } from "@lib/server/invitations";
 import { createOrganizationWithOwner } from "@lib/server/organizations";
@@ -53,7 +53,8 @@ export async function signInAction(_: AuthFormState, formData: FormData): Promis
   "use server";
   const email = getField(formData, "email").toLowerCase();
   const password = getField(formData, "password");
-  const redirectTo = resolveRedirect(getField(formData, "redirectTo"));
+  const rawRedirectTarget = getField(formData, "redirectTo");
+  const redirectTo = resolveRedirect(rawRedirectTarget);
   const inviteToken = getField(formData, "inviteToken");
 
   if (!validateEmail(email)) {
@@ -81,6 +82,14 @@ export async function signInAction(_: AuthFormState, formData: FormData): Promis
       }
       return { status: "error", message: "Unable to accept invitation." };
     }
+  }
+
+  const adminRoles = new Set<PlatformRole>([PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN]);
+  const defaultRedirect = "/app";
+  const isDefaultRedirect = !rawRedirectTarget || rawRedirectTarget === defaultRedirect;
+
+  if (!inviteToken && isDefaultRedirect && adminRoles.has(user.platformRole)) {
+    destination = "/admin";
   }
 
   await createSession(user.id);

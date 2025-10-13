@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import {
   Alert,
@@ -19,13 +19,56 @@ const initialState: LinkFormState = { status: "idle" };
 
 export function CreateLinkForm({ organizationSlug }: { organizationSlug: string }) {
   const [state, formAction] = useActionState(createLinkAction, initialState);
+  const [shortUrl, setShortUrl] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
 
   useEffect(() => {
     if (state.status === "success") {
       const form = document.querySelector<HTMLFormElement>("#create-link-form");
       form?.reset();
+
+      if (typeof window !== "undefined") {
+        const origin = window.location.origin.replace(/\/$/, "");
+        const url = state.link.domain
+          ? `https://${state.link.domain}/${state.link.slug}`
+          : `${origin}/r/${state.link.slug}`;
+        setShortUrl(url);
+      } else {
+        setShortUrl(null);
+      }
+      setCopyStatus("idle");
+    } else {
+      setShortUrl(null);
     }
-  }, [state.status]);
+  }, [state]);
+
+  async function handleCopy() {
+    if (!shortUrl) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(shortUrl);
+      setCopyStatus("copied");
+      setTimeout(() => setCopyStatus("idle"), 2000);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = shortUrl;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        setCopyStatus("copied");
+        setTimeout(() => setCopyStatus("idle"), 2000);
+      } catch {
+        setCopyStatus("idle");
+      } finally {
+        document.body.removeChild(textarea);
+      }
+    }
+  }
 
   return (
     <Card>
@@ -59,7 +102,23 @@ export function CreateLinkForm({ organizationSlug }: { organizationSlug: string 
             <div className="md:col-span-2">
               <Alert>
                 <AlertTitle>Link ready</AlertTitle>
-                <AlertDescription>{state.message}</AlertDescription>
+                <AlertDescription className="space-y-3">
+                  <p>{state.message}</p>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <code className="w-full rounded border border-border/60 bg-muted/40 px-3 py-2 font-mono text-sm text-foreground sm:w-auto">
+                      {shortUrl ?? "Generating short link..."}
+                    </code>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopy}
+                      disabled={!shortUrl}
+                    >
+                      {copyStatus === "copied" ? "Copied!" : "Copy link"}
+                    </Button>
+                  </div>
+                </AlertDescription>
               </Alert>
             </div>
           ) : null}
