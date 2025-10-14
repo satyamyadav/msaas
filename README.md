@@ -37,6 +37,17 @@ A Next.js 14 starter template that demonstrates how to wire feature flags, eject
    ```
 3. Sign in to the owner console at [http://localhost:3000/sign-in?mode=login&redirectTo=%2Fadmin](http://localhost:3000/sign-in?mode=login&redirectTo=%2Fadmin) using the credentials above. Use this super admin account to create additional platform admins without impacting workspace users.
 
+### Loading demo workspace data
+
+Populate the dashboard, analytics, and billing surfaces with realistic sample records:
+
+1. (Optional) Override the default password for demo accounts by exporting `SEED_USER_PASSWORD` before running the script. The default password is `password123`.
+2. Seed the database:
+   ```bash
+   npm run seed:demo
+   ```
+3. Sign in as any seeded user (for example `lucy@acme.dev`, `marco@acme.dev`, or the platform-level admin `platform-admin@msaas.dev`) using the password set above. Each account is attached to demo organizations with sample links, invites, API keys, billing subscriptions, and audit logs.
+
 ## Project Structure
 
 ```

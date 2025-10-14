@@ -11,6 +11,7 @@
     "db:merge": "node scripts/merge-prisma.mjs",
     "postinstall": "npm run db:merge && prisma generate --schema prisma/merged.prisma",
     "bootstrap:super-admin": "node scripts/bootstrap-super-admin.mjs",
+    "seed:demo": "node scripts/seed-demo-data.mjs",
     "test:e2e": "playwright test"
   },
   "prisma": {
