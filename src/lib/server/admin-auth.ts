@@ -10,7 +10,9 @@ export async function requireAdminUser() {
     redirect(`/sign-in?${params.toString()}`);
   }
 
-  if (![PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN].includes(user.platformRole)) {
+  const allowedRoles: PlatformRole[] = [PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN];
+
+  if (!allowedRoles.includes(user.platformRole)) {
     redirect("/app");
   }
 

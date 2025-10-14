@@ -12,13 +12,16 @@ import { getCurrentUser } from "@modules/auth/actions";
 
 import { CreateLinkForm } from "./links/create-link-form";
 
-export default async function LinksHome({ params }: { params: { orgSlug: string } }) {
+type Params = Promise<{ orgSlug: string }>;
+
+export default async function LinksHome({ params }: { params: Params }) {
+  const { orgSlug } = await params;
   const user = await getCurrentUser();
   if (!user) {
     return null;
   }
 
-  const access = await getOrganizationBySlugForUser(params.orgSlug, user.id);
+  const access = await getOrganizationBySlugForUser(orgSlug, user.id);
   if (!access) {
     return null;
   }
@@ -27,7 +30,7 @@ export default async function LinksHome({ params }: { params: { orgSlug: string 
 
   return (
     <div className="flex flex-col gap-6">
-      <CreateLinkForm organizationSlug={params.orgSlug} />
+      <CreateLinkForm organizationSlug={orgSlug} />
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -35,7 +38,7 @@ export default async function LinksHome({ params }: { params: { orgSlug: string 
             <CardDescription>Manage slugs, update destinations, and monitor performance.</CardDescription>
           </div>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/app/${params.orgSlug}/analytics`}>View analytics</Link>
+            <Link href={`/app/${orgSlug}/analytics`}>View analytics</Link>
           </Button>
         </CardHeader>
         <CardContent>

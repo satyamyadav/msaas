@@ -11,13 +11,16 @@ import { getCurrentUser } from "@modules/auth/actions";
 import { CreateApiKeyForm } from "./api-key-form";
 import { revokeApiKeyAction } from "./actions";
 
-export default async function ApiKeysSettingsPage({ params }: { params: { orgSlug: string } }) {
+type Params = Promise<{ orgSlug: string }>;
+
+export default async function ApiKeysSettingsPage({ params }: { params: Params }) {
+  const { orgSlug } = await params;
   const user = await getCurrentUser();
   if (!user) {
     return null;
   }
 
-  const access = await getOrganizationBySlugForUser(params.orgSlug, user.id);
+  const access = await getOrganizationBySlugForUser(orgSlug, user.id);
   if (!access) {
     return null;
   }
@@ -32,7 +35,7 @@ export default async function ApiKeysSettingsPage({ params }: { params: { orgSlu
           Generate scoped API access tokens for integrations and automation.
         </p>
       </div>
-      <CreateApiKeyForm organizationSlug={params.orgSlug} />
+      <CreateApiKeyForm organizationSlug={orgSlug} />
       <Card>
         <CardHeader>
           <CardTitle>Existing keys</CardTitle>
@@ -55,7 +58,7 @@ export default async function ApiKeysSettingsPage({ params }: { params: { orgSlu
                     {key.revokedAt ? <Badge variant="destructive">Revoked</Badge> : <Badge variant="outline">Active</Badge>}
                     {!key.revokedAt ? (
                       <form action={revokeApiKeyAction}>
-                        <input type="hidden" name="organizationSlug" value={params.orgSlug} />
+                        <input type="hidden" name="organizationSlug" value={orgSlug} />
                         <input type="hidden" name="apiKeyId" value={key.id} />
                         <Button type="submit" variant="ghost" size="sm">
                           Revoke

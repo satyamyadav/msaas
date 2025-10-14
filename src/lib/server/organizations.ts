@@ -73,8 +73,6 @@ export async function createOrganizationWithOwner({
   });
 }
 
-type MembershipSummary = Awaited<ReturnType<typeof getOrganizationsForUser>>[number];
-
 export async function getOrganizationsForUser(userId: string) {
   const memberships = await prisma.organizationMember.findMany({
     where: {
@@ -99,8 +97,6 @@ export async function getOrganizationsForUser(userId: string) {
     membership,
   }));
 }
-
-type OrganizationAccess = NonNullable<Awaited<ReturnType<typeof getOrganizationBySlugForUser>>>;
 
 export async function getOrganizationBySlugForUser(slug: string, userId: string) {
   const organization = await prisma.organization.findFirst({
@@ -225,11 +221,11 @@ export async function markChecklistStep(organizationId: string, step: ChecklistS
   });
 }
 
-export function isOwnerOrAdmin(membership: MembershipSummary["membership"]) {
+export function isOwnerOrAdmin(membership: { role: MemberRole }) {
   return membership.role === MemberRole.OWNER || membership.role === MemberRole.ADMIN;
 }
 
-export function assertCanManageBilling(membership: OrganizationAccess["membership"]) {
+export function assertCanManageBilling(membership: { role: MemberRole }) {
   if (!isOwnerOrAdmin(membership)) {
     throw new Error("FORBIDDEN_BILLING_ACCESS");
   }

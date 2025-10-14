@@ -6,13 +6,16 @@ import { getBillingOverview } from "@lib/server/billing";
 import { getOrganizationBySlugForUser } from "@lib/server/organizations";
 import { getCurrentUser } from "@modules/auth/actions";
 
-export default async function BillingSettingsPage({ params }: { params: { orgSlug: string } }) {
+type Params = Promise<{ orgSlug: string }>;
+
+export default async function BillingSettingsPage({ params }: { params: Params }) {
+  const { orgSlug } = await params;
   const user = await getCurrentUser();
   if (!user) {
     return null;
   }
 
-  const access = await getOrganizationBySlugForUser(params.orgSlug, user.id);
+  const access = await getOrganizationBySlugForUser(orgSlug, user.id);
   if (!access) {
     return null;
   }

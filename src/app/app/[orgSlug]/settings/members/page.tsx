@@ -11,13 +11,16 @@ import { getCurrentUser } from "@modules/auth/actions";
 import { InviteMemberForm } from "./invite-form";
 import { revokeInviteAction } from "./actions";
 
-export default async function MembersSettingsPage({ params }: { params: { orgSlug: string } }) {
+type Params = Promise<{ orgSlug: string }>;
+
+export default async function MembersSettingsPage({ params }: { params: Params }) {
+  const { orgSlug } = await params;
   const user = await getCurrentUser();
   if (!user) {
     return null;
   }
 
-  const access = await getOrganizationBySlugForUser(params.orgSlug, user.id);
+  const access = await getOrganizationBySlugForUser(orgSlug, user.id);
   if (!access) {
     return null;
   }
@@ -49,7 +52,7 @@ export default async function MembersSettingsPage({ params }: { params: { orgSlu
         <h1 className="text-2xl font-semibold">Workspace members</h1>
         <p className="text-sm text-muted-foreground">Invite teammates and manage access levels.</p>
       </div>
-      <InviteMemberForm organizationSlug={params.orgSlug} />
+      <InviteMemberForm organizationSlug={orgSlug} />
       <Card>
         <CardHeader>
           <CardTitle>Team members</CardTitle>
@@ -103,7 +106,7 @@ export default async function MembersSettingsPage({ params }: { params: { orgSlu
                   </div>
                   <form action={revokeInviteAction}>
                     <input type="hidden" name="inviteId" value={invite.id} />
-                    <input type="hidden" name="organizationSlug" value={params.orgSlug} />
+                    <input type="hidden" name="organizationSlug" value={orgSlug} />
                     <Button type="submit" variant="ghost" size="sm">
                       Revoke
                     </Button>
