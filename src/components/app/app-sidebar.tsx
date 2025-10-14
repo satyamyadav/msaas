@@ -40,7 +40,7 @@ const NAV_ITEMS: { heading: string; items: NavItem[] }[] = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { organization } = useActiveOrganization() as { organization: { slug: string; membership: { role: MemberRole } } };
+  const { organization, membership } = useActiveOrganization();
 
   return (
     <nav className="hidden w-64 flex-col border-r border-border/60 bg-background/40 p-6 lg:flex">
@@ -61,7 +61,7 @@ export function AppSidebar() {
                 [MemberRole.VIEWER]: 0,
               };
               const required = item.minRole ? roleOrder[item.minRole] : 0;
-              const current = roleOrder[organization?.membership?.role];
+              const current = roleOrder[membership.role];
               if (current < required) {
                 return null;
               }

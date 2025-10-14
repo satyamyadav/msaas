@@ -8,13 +8,16 @@ import { getCurrentUser } from "@modules/auth/actions";
 import { deleteOrganizationAction } from "./actions";
 import { OrganizationProfileForm } from "./profile-form";
 
-export default async function OrganizationSettingsPage({ params }: { params: { orgSlug: string } }) {
+type Params = Promise<{ orgSlug: string }>;
+
+export default async function OrganizationSettingsPage({ params }: { params: Params }) {
+  const { orgSlug } = await params;
   const user = await getCurrentUser();
   if (!user) {
     return null;
   }
 
-  const access = await getOrganizationBySlugForUser(params.orgSlug, user.id);
+  const access = await getOrganizationBySlugForUser(orgSlug, user.id);
   if (!access) {
     return null;
   }
@@ -29,7 +32,7 @@ export default async function OrganizationSettingsPage({ params }: { params: { o
           <p className="text-sm text-muted-foreground">Update the public name and default metadata for this workspace.</p>
         </div>
         <OrganizationProfileForm
-          organizationSlug={params.orgSlug}
+          organizationSlug={orgSlug}
           defaultName={access.organization.name}
           defaultPrimaryDomain={access.organization.primaryDomain ?? null}
         />
@@ -45,7 +48,7 @@ export default async function OrganizationSettingsPage({ params }: { params: { o
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" size="sm">
-              <a href={`/app/${params.orgSlug}/settings/billing`}>Open billing</a>
+              <a href={`/app/${orgSlug}/settings/billing`}>Open billing</a>
             </Button>
           </CardFooter>
         </Card>
@@ -62,7 +65,7 @@ export default async function OrganizationSettingsPage({ params }: { params: { o
               </AlertDescription>
             </Alert>
             <form action={deleteOrganizationAction} className="flex flex-col gap-3">
-              <input type="hidden" name="organizationSlug" value={params.orgSlug} />
+              <input type="hidden" name="organizationSlug" value={orgSlug} />
               <Button type="submit" variant="destructive" disabled={!canDelete}>
                 Delete workspace
               </Button>

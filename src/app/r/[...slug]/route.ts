@@ -60,11 +60,26 @@ function extractClientIp(request: NextRequest) {
     }
   }
 
-  if (request.ip) {
-    return request.ip;
+  return null;
+}
+
+type RequestGeo = {
+  country?: string | null;
+  region?: string | null;
+  city?: string | null;
+};
+
+function extractGeo(request: NextRequest) {
+  const geo = (request as NextRequest & { geo?: RequestGeo | null }).geo;
+  if (!geo) {
+    return null;
   }
 
-  return null;
+  return {
+    country: geo.country ?? null,
+    region: geo.region ?? null,
+    city: geo.city ?? null,
+  };
 }
 
 function extractUtmParams(searchParams: URLSearchParams) {
@@ -131,13 +146,7 @@ async function handleRedirect(request: NextRequest, { slug }: RouteParams, shoul
     const utm = extractUtmParams(searchParams);
     const referrer = request.headers.get("referer") ?? null;
     const userAgent = request.headers.get("user-agent") ?? null;
-    const geo = request.geo
-      ? {
-          country: request.geo.country ?? null,
-          region: request.geo.region ?? null,
-          city: request.geo.city ?? null,
-        }
-      : null;
+    const geo = extractGeo(request);
     const ip = extractClientIp(request);
 
     try {
@@ -156,10 +165,14 @@ async function handleRedirect(request: NextRequest, { slug }: RouteParams, shoul
   return buildRedirectResponse(link.destinationUrl);
 }
 
-export async function GET(request: NextRequest, context: { params: RouteParams }) {
-  return handleRedirect(request, context.params, true);
+type RouteContext = { params: Promise<RouteParams> };
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  return handleRedirect(request, params, true);
 }
 
-export async function HEAD(request: NextRequest, context: { params: RouteParams }) {
-  return handleRedirect(request, context.params, false);
+export async function HEAD(request: NextRequest, context: RouteContext) {
+  const params = await context.params;
+  return handleRedirect(request, params, false);
 }

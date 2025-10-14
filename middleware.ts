@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
     return redirectToLogin(request, true);
   }
 
-  const allowedPlatformRoles = [PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN];
+  const allowedPlatformRoles: PlatformRole[] = [PlatformRole.ADMIN, PlatformRole.SUPER_ADMIN];
 
   if (!allowedPlatformRoles.includes(session.user.platformRole)) {
     return NextResponse.redirect(new URL("/app", request.url));

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { updateOrganizationSettings, softDeleteOrganization, getOrganizationBySlugForUser } from "@lib/server/organizations";
 import { getCurrentUser } from "@modules/auth/actions";

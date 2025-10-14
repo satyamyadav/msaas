@@ -5,16 +5,19 @@ import { AppShell } from "@components/app/app-shell";
 import { getOrganizationsForUser, getOrganizationBySlugForUser } from "@lib/server/organizations";
 import { getCurrentUser } from "@modules/auth/actions";
 
+type Params = Promise<{ orgSlug: string }>;
+
 export default async function OrganizationLayout({
   children,
   params,
 }: {
   children: ReactNode;
-  params: { orgSlug: string };
+  params: Params;
 }) {
+  const { orgSlug } = await params;
   const user = await getCurrentUser();
   if (!user) {
-    redirect(`/sign-in?redirectTo=${encodeURIComponent(`/app/${params.orgSlug}`)}`);
+    redirect(`/sign-in?redirectTo=${encodeURIComponent(`/app/${orgSlug}`)}`);
   }
 
   const memberships = await getOrganizationsForUser(user.id);
@@ -22,7 +25,7 @@ export default async function OrganizationLayout({
     redirect("/app/new");
   }
 
-  const active = await getOrganizationBySlugForUser(params.orgSlug, user.id);
+  const active = await getOrganizationBySlugForUser(orgSlug, user.id);
   if (!active) {
     notFound();
   }

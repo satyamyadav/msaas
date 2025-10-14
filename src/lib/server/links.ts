@@ -463,10 +463,12 @@ export async function getLinkAnalyticsSummary({ organizationId, from, to }: Anal
   ]);
 
   const totalClicks = totals.reduce((sum, item) => sum + item._count._all, 0);
+  const uniqueVisitors = links.reduce((sum, item) => sum + item.uniqueVisitors, 0);
 
   return {
     topLinks: links,
     totalClicks,
+    uniqueVisitors,
   };
 }
 

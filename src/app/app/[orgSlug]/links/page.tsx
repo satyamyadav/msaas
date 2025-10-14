@@ -11,13 +11,16 @@ import { getLinkAnalyticsSummary, computeUsageStats, getPlanLimits } from "@lib/
 import { getOrganizationBySlugForUser } from "@lib/server/organizations";
 import { getCurrentUser } from "@modules/auth/actions";
 
-export default async function OrganizationOverview({ params }: { params: { orgSlug: string } }) {
+type Params = Promise<{ orgSlug: string }>;
+
+export default async function OrganizationOverview({ params }: { params: Params }) {
+  const { orgSlug } = await params;
   const user = await getCurrentUser();
   if (!user) {
     return null;
   }
 
-  const access = await getOrganizationBySlugForUser(params.orgSlug, user.id);
+  const access = await getOrganizationBySlugForUser(orgSlug, user.id);
   if (!access) {
     return null;
   }
@@ -125,14 +128,14 @@ export default async function OrganizationOverview({ params }: { params: { orgSl
             {analytics.topLinks.length ? (
               <ul className="space-y-3">
                 {analytics.topLinks.map((item) => (
-                  <li key={item.linkId} className="flex items-center justify-between gap-4 rounded border border-border/60 p-3">
+                  <li key={item.id} className="flex items-center justify-between gap-4 rounded border border-border/60 p-3">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{item.slug}</span>
                       <span className="truncate text-xs text-muted-foreground">{item.destinationUrl}</span>
                     </div>
                     <div className="flex items-center gap-3 text-sm text-muted-foreground">
                       <span>
-                        <strong className="text-foreground">{item.value}</strong> clicks
+                        <strong className="text-foreground">{item.clickCount}</strong> clicks
                       </span>
                     </div>
                   </li>

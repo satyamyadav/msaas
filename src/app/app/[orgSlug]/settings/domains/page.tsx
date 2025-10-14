@@ -11,6 +11,8 @@ import { getCurrentUser } from "@modules/auth/actions";
 import { deleteDomainAction } from "./actions";
 import { DomainRequestForm } from "./domain-form";
 
+type Params = Promise<{ orgSlug: string }>;
+
 const STATUS_COPY: Record<string, string> = {
   PENDING: "Pending verification",
   VERIFYING: "Verifying",
@@ -18,13 +20,14 @@ const STATUS_COPY: Record<string, string> = {
   FAILED: "Verification failed",
 };
 
-export default async function DomainsSettingsPage({ params }: { params: { orgSlug: string } }) {
+export default async function DomainsSettingsPage({ params }: { params: Params }) {
+  const { orgSlug } = await params;
   const user = await getCurrentUser();
   if (!user) {
     return null;
   }
 
-  const access = await getOrganizationBySlugForUser(params.orgSlug, user.id);
+  const access = await getOrganizationBySlugForUser(orgSlug, user.id);
   if (!access) {
     return null;
   }
@@ -39,7 +42,7 @@ export default async function DomainsSettingsPage({ params }: { params: { orgSlu
           Map branded domains to your short links. Pro plans support up to three custom domains.
         </p>
       </div>
-      <DomainRequestForm organizationSlug={params.orgSlug} />
+      <DomainRequestForm organizationSlug={orgSlug} />
       <Card>
         <CardHeader>
           <CardTitle>Active domains</CardTitle>
@@ -62,7 +65,7 @@ export default async function DomainsSettingsPage({ params }: { params: { orgSlu
                   <div className="flex items-center gap-3">
                     <Badge variant="outline">{STATUS_COPY[domain.status] ?? domain.status}</Badge>
                     <form action={deleteDomainAction}>
-                      <input type="hidden" name="organizationSlug" value={params.orgSlug} />
+                      <input type="hidden" name="organizationSlug" value={orgSlug} />
                       <input type="hidden" name="domainId" value={domain.id} />
                       <Button type="submit" variant="ghost" size="sm">
                         Remove
