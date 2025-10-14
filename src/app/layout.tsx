@@ -20,9 +20,9 @@ const mono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Modular SaaS Starter Kit",
+  title: "UrlCraft | Branded Link Shortening for Modern Teams",
   description:
-    "A Next.js 14 starter template featuring feature flags, ejectable modules, and Prisma schema merging.",
+    "UrlCraft helps growth teams shorten, track, and optimize every branded link with real-time analytics and collaboration tools.",
 };
 
 export default function RootLayout({
